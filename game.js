@@ -99,6 +99,7 @@ function setupEventListeners() {
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false }); // Handle touch cancellation
     
     // Prevent context menu on long press
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -174,7 +175,7 @@ function handleMouseDown(e) {
         Math.pow(y - cueBall.position.y, 2)
     );
     
-    const touchRadius = gameState.isMobile ? 80 : 50; // Larger touch area on mobile
+    const touchRadius = gameState.isMobile ? 100 : 50; // Larger touch area on mobile for better usability
     
     if (distance < touchRadius) {
         gameState.isAiming = true;
@@ -215,8 +216,12 @@ function handleTouchStart(e) {
     
     if (e.touches.length !== 1) return; // Only handle single touch
     
+    // Prevent rapid successive touches
+    const now = Date.now();
+    if (now - gameState.touchStartTime < 100) return;
+    
     const touch = e.touches[0];
-    gameState.touchStartTime = Date.now();
+    gameState.touchStartTime = now;
     gameState.lastTouchPos = { x: touch.clientX, y: touch.clientY };
     
     // Create visual touch indicator
@@ -256,8 +261,12 @@ function handleTouchEnd(e) {
         shoot();
     }
     
-    // Convert to mouse event
-    const mouseEvent = new MouseEvent('mouseup', {});
+    // Convert to mouse event using changedTouches for touchend
+    const touch = e.changedTouches[0];
+    const mouseEvent = new MouseEvent('mouseup', {
+        clientX: touch ? touch.clientX : 0,
+        clientY: touch ? touch.clientY : 0
+    });
     canvas.dispatchEvent(mouseEvent);
     
     gameState.lastTouchPos = null;
@@ -462,16 +471,16 @@ function drawTouchAreaIndicator() {
     ctx.setLineDash([10, 10]);
     
     ctx.beginPath();
-    ctx.arc(cueBall.position.x, cueBall.position.y, 80, 0, Math.PI * 2);
+    ctx.arc(cueBall.position.x, cueBall.position.y, 100, 0, Math.PI * 2);
     ctx.stroke();
     
     ctx.setLineDash([]);
     
     // Draw tap instruction
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = gameState.isMobile ? '14px Arial' : '12px Arial';
+    ctx.font = gameState.isMobile ? '16px Arial' : '12px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('TAP TO AIM', cueBall.position.x, cueBall.position.y + 110);
+    ctx.fillText('TAP & DRAG TO AIM', cueBall.position.x, cueBall.position.y + 120);
 }
 
 // Draw enhanced aiming feedback for mobile
@@ -517,6 +526,37 @@ function drawMobileAimingFeedback() {
     ctx.font = '12px Arial';
     ctx.fillStyle = 'rgba(255, 255, 0, 0.8)';
     ctx.fillText('QUICK TAP TO SHOOT', cueBall.position.x, cueBall.position.y + 50);
+    
+    // Draw cue stick representation for better visual feedback
+    if (gameState.aimEnd) {
+        const cueOffset = 40; // Distance from cue ball
+        const cueLength = 60;
+        const angle = Math.atan2(
+            gameState.aimEnd.y - cueBall.position.y,
+            gameState.aimEnd.x - cueBall.position.x
+        );
+        
+        // Calculate cue stick position
+        const cueStartX = cueBall.position.x - Math.cos(angle) * (cueBall.radius + cueOffset);
+        const cueStartY = cueBall.position.y - Math.sin(angle) * (cueBall.radius + cueOffset);
+        const cueEndX = cueStartX - Math.cos(angle) * cueLength;
+        const cueEndY = cueStartY - Math.sin(angle) * cueLength;
+        
+        // Draw cue stick
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(cueStartX, cueStartY);
+        ctx.lineTo(cueEndX, cueEndY);
+        ctx.stroke();
+        
+        // Draw cue tip
+        ctx.fillStyle = '#D2691E';
+        ctx.beginPath();
+        ctx.arc(cueStartX, cueStartY, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
 // Update score display
