@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e3c72">
     <title>8-Ball Bank Shot Simulator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -44,15 +48,35 @@
 
             <div class="info-panel">
                 <h2>How to Play</h2>
-                <ul>
+                <ul class="desktop-instructions">
                     <li>Click and drag on the cue ball to aim</li>
                     <li>Adjust power with the slider</li>
                     <li>Click "Shoot" or press spacebar to shoot</li>
                     <li>Try to bank the cue ball off the walls to hit the 8-ball</li>
                     <li>More banks = higher score!</li>
                 </ul>
+                <ul class="mobile-instructions">
+                    <li>Tap and drag on the cue ball to aim</li>
+                    <li>Adjust power with the slider at the bottom</li>
+                    <li>Quick tap to shoot or use the "Shoot" button</li>
+                    <li>Try to bank the cue ball off the walls to hit the 8-ball</li>
+                    <li>More banks = higher score!</li>
+                </ul>
             </div>
         </main>
+    </div>
+
+    <!-- Mobile Virtual Controls -->
+    <div class="mobile-controls">
+        <div class="control-row">
+            <label for="mobilePowerSlider">Power:</label>
+            <input type="range" id="mobilePowerSlider" min="0" max="100" value="50">
+            <span id="mobilePowerValue">50%</span>
+        </div>
+        <div class="control-row">
+            <button id="mobileShootBtn" class="btn-primary">Shoot</button>
+            <button id="mobileResetBtn" class="btn-secondary">Reset</button>
+        </div>
     </div>
 
     <script src="physics.js"></script>
