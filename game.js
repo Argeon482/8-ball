@@ -11,13 +11,31 @@ let gameState = {
     bankCount: 0,
     currentBankCount: 0,
     score: 0,
-    ballsMoving: false
+    ballsMoving: false,
+    isMobile: false,
+    touchStartTime: 0,
+    lastTouchPos: null
 };
+
+// Mobile detection
+function detectMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+           window.innerWidth <= 768 || 
+           'ontouchstart' in window;
+}
 
 // Initialize game
 function init() {
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
+    
+    // Detect mobile device
+    gameState.isMobile = detectMobile();
+    
+    // Optimize canvas for mobile
+    if (gameState.isMobile) {
+        optimizeCanvasForMobile();
+    }
     
     // Create balls
     cueBall = new Ball(200, canvas.height / 2, 'white');
@@ -30,6 +48,40 @@ function init() {
     requestAnimationFrame(gameLoop);
 }
 
+// Optimize canvas for mobile devices
+function optimizeCanvasForMobile() {
+    const container = canvas.parentElement;
+    const containerWidth = container.clientWidth - 40; // Account for padding
+    const aspectRatio = 800 / 400; // Original aspect ratio
+    
+    if (containerWidth < 800) {
+        const newWidth = Math.min(containerWidth, 600);
+        const newHeight = newWidth / aspectRatio;
+        
+        // Set display size
+        canvas.style.width = newWidth + 'px';
+        canvas.style.height = newHeight + 'px';
+        
+        // Set actual canvas size for high DPI displays
+        const scale = window.devicePixelRatio || 1;
+        canvas.width = newWidth * scale;
+        canvas.height = newHeight * scale;
+        
+        // Scale the drawing context so everything draws at the correct size
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        
+        // Update ball positions proportionally if balls exist
+        if (cueBall && eightBall) {
+            const scaleX = newWidth / 800;
+            const scaleY = newHeight / 400;
+            cueBall.position.x = 200 * scaleX;
+            cueBall.position.y = (400 / 2) * scaleY;
+            eightBall.position.x = 600 * scaleX;
+            eightBall.position.y = (400 / 2) * scaleY;
+        }
+    }
+}
+
 // Set up event listeners
 function setupEventListeners() {
     // Mouse events for aiming
@@ -37,21 +89,35 @@ function setupEventListeners() {
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     
-    // Touch events for mobile
-    canvas.addEventListener('touchstart', handleTouchStart);
-    canvas.addEventListener('touchmove', handleTouchMove);
-    canvas.addEventListener('touchend', handleTouchEnd);
+    // Enhanced touch events for mobile
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
     
-    // Power slider
+    // Prevent context menu on long press
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    
+    // Power slider - both desktop and mobile
     const powerSlider = document.getElementById('powerSlider');
-    powerSlider.addEventListener('input', (e) => {
-        gameState.shotPower = parseInt(e.target.value);
-        document.getElementById('powerValue').textContent = gameState.shotPower + '%';
-    });
+    const mobilePowerSlider = document.getElementById('mobilePowerSlider');
     
-    // Buttons
+    const updatePower = (value) => {
+        gameState.shotPower = parseInt(value);
+        document.getElementById('powerValue').textContent = gameState.shotPower + '%';
+        document.getElementById('mobilePowerValue').textContent = gameState.shotPower + '%';
+        // Sync both sliders
+        powerSlider.value = value;
+        mobilePowerSlider.value = value;
+    };
+    
+    powerSlider.addEventListener('input', (e) => updatePower(e.target.value));
+    mobilePowerSlider.addEventListener('input', (e) => updatePower(e.target.value));
+    
+    // Buttons - both desktop and mobile
     document.getElementById('shootBtn').addEventListener('click', shoot);
     document.getElementById('resetBtn').addEventListener('click', resetGame);
+    document.getElementById('mobileShootBtn').addEventListener('click', shoot);
+    document.getElementById('mobileResetBtn').addEventListener('click', resetGame);
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -60,6 +126,28 @@ function setupEventListeners() {
             shoot();
         }
     });
+    
+    // Handle orientation changes on mobile
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            if (gameState.isMobile) {
+                optimizeCanvasForMobile();
+            }
+        }, 100);
+    });
+}
+
+// Enhanced touch handling with visual feedback
+function createTouchIndicator(x, y) {
+    const indicator = document.createElement('div');
+    indicator.className = 'touch-indicator';
+    indicator.style.left = x + 'px';
+    indicator.style.top = y + 'px';
+    document.body.appendChild(indicator);
+    
+    setTimeout(() => {
+        indicator.remove();
+    }, 300);
 }
 
 // Mouse/Touch handlers
@@ -67,8 +155,11 @@ function handleMouseDown(e) {
     if (gameState.ballsMoving) return;
     
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
     
     // Check if clicking near cue ball
     const distance = Math.sqrt(
@@ -76,9 +167,16 @@ function handleMouseDown(e) {
         Math.pow(y - cueBall.position.y, 2)
     );
     
-    if (distance < 50) {
+    const touchRadius = gameState.isMobile ? 80 : 50; // Larger touch area on mobile
+    
+    if (distance < touchRadius) {
         gameState.isAiming = true;
         gameState.aimStart = new Vector2(cueBall.position.x, cueBall.position.y);
+        
+        // Add haptic feedback on supported devices
+        if ('vibrate' in navigator && gameState.isMobile) {
+            navigator.vibrate(50);
+        }
     }
 }
 
@@ -86,8 +184,11 @@ function handleMouseMove(e) {
     if (!gameState.isAiming || gameState.ballsMoving) return;
     
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
     
     const mousePos = new Vector2(x, y);
     const aimData = calculateAimLine(gameState.aimStart, mousePos);
@@ -100,10 +201,20 @@ function handleMouseUp(e) {
     gameState.isAiming = false;
 }
 
-// Touch handlers (for mobile)
+// Enhanced touch handlers with better feedback
 function handleTouchStart(e) {
     e.preventDefault();
+    
+    if (e.touches.length !== 1) return; // Only handle single touch
+    
     const touch = e.touches[0];
+    gameState.touchStartTime = Date.now();
+    gameState.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+    
+    // Create visual touch indicator
+    createTouchIndicator(touch.clientX, touch.clientY);
+    
+    // Convert to mouse event
     const mouseEvent = new MouseEvent('mousedown', {
         clientX: touch.clientX,
         clientY: touch.clientY
@@ -113,7 +224,13 @@ function handleTouchStart(e) {
 
 function handleTouchMove(e) {
     e.preventDefault();
+    
+    if (e.touches.length !== 1 || !gameState.isAiming) return;
+    
     const touch = e.touches[0];
+    gameState.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+    
+    // Convert to mouse event
     const mouseEvent = new MouseEvent('mousemove', {
         clientX: touch.clientX,
         clientY: touch.clientY
@@ -123,8 +240,19 @@ function handleTouchMove(e) {
 
 function handleTouchEnd(e) {
     e.preventDefault();
+    
+    const touchDuration = Date.now() - gameState.touchStartTime;
+    
+    // Quick tap to shoot (less than 200ms and minimal movement)
+    if (touchDuration < 200 && gameState.isAiming && gameState.aimAngle !== 0) {
+        shoot();
+    }
+    
+    // Convert to mouse event
     const mouseEvent = new MouseEvent('mouseup', {});
     canvas.dispatchEvent(mouseEvent);
+    
+    gameState.lastTouchPos = null;
 }
 
 // Shoot the cue ball
@@ -193,9 +321,19 @@ function render() {
     eightBall.draw(ctx);
     cueBall.draw(ctx);
     
+    // Draw touch area indicator for mobile when not aiming
+    if (gameState.isMobile && !gameState.isAiming && !gameState.ballsMoving) {
+        drawTouchAreaIndicator();
+    }
+    
     // Draw power indicator on cue ball when aiming
     if ((gameState.isAiming || gameState.aimAngle !== 0) && !gameState.ballsMoving) {
         drawPowerIndicator();
+    }
+    
+    // Draw enhanced aiming feedback for mobile
+    if (gameState.isMobile && gameState.isAiming && !gameState.ballsMoving) {
+        drawMobileAimingFeedback();
     }
 }
 
@@ -285,7 +423,7 @@ function drawPowerIndicator() {
     
     // Draw cue stick
     ctx.strokeStyle = '#8B4513';
-    ctx.lineWidth = 6;
+    ctx.lineWidth = gameState.isMobile ? 8 : 6;
     ctx.lineCap = 'round';
     
     ctx.beginPath();
@@ -296,8 +434,72 @@ function drawPowerIndicator() {
     // Draw cue tip
     ctx.fillStyle = '#4169E1';
     ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.arc(x, y, gameState.isMobile ? 6 : 4, 0, Math.PI * 2);
     ctx.fill();
+}
+
+// Draw touch area indicator for mobile
+function drawTouchAreaIndicator() {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 10]);
+    
+    ctx.beginPath();
+    ctx.arc(cueBall.position.x, cueBall.position.y, 80, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.setLineDash([]);
+    
+    // Draw tap instruction
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = gameState.isMobile ? '14px Arial' : '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('TAP TO AIM', cueBall.position.x, cueBall.position.y + 110);
+}
+
+// Draw enhanced aiming feedback for mobile
+function drawMobileAimingFeedback() {
+    if (!gameState.aimEnd) return;
+    
+    // Draw thicker aiming line for mobile
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([8, 8]);
+    
+    ctx.beginPath();
+    ctx.moveTo(cueBall.position.x, cueBall.position.y);
+    ctx.lineTo(gameState.aimEnd.x, gameState.aimEnd.y);
+    ctx.stroke();
+    
+    ctx.setLineDash([]);
+    
+    // Draw power arc around cue ball
+    const powerPercent = gameState.shotPower / 100;
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + (2 * Math.PI * powerPercent);
+    
+    ctx.strokeStyle = `hsl(${120 * powerPercent}, 100%, 50%)`;
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    
+    ctx.beginPath();
+    ctx.arc(cueBall.position.x, cueBall.position.y, 25, startAngle, endAngle);
+    ctx.stroke();
+    
+    // Draw power percentage text
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(
+        `${gameState.shotPower}%`,
+        cueBall.position.x,
+        cueBall.position.y - 40
+    );
+    
+    // Draw quick tap instruction
+    ctx.font = '12px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.8)';
+    ctx.fillText('QUICK TAP TO SHOOT', cueBall.position.x, cueBall.position.y + 50);
 }
 
 // Update score display
@@ -375,12 +577,17 @@ function resetGame() {
         bankCount: 0,
         currentBankCount: 0,
         score: 0,
-        ballsMoving: false
+        ballsMoving: false,
+        isMobile: gameState.isMobile, // Preserve mobile state
+        touchStartTime: 0,
+        lastTouchPos: null
     };
     
     // Reset UI
     document.getElementById('powerSlider').value = 50;
     document.getElementById('powerValue').textContent = '50%';
+    document.getElementById('mobilePowerSlider').value = 50;
+    document.getElementById('mobilePowerValue').textContent = '50%';
     updateScore();
 }
 
