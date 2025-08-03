@@ -339,6 +339,218 @@ button:active::after {
     min-width: 50px;
 }
 
+/* Enhanced Mobile Controls Animations */
+@keyframes precisionPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.8;
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+        box-shadow: 0 0 60px rgba(255, 215, 0, 0.2);
+    }
+}
+
+@keyframes enhancedRipple {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(0.7);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+    }
+}
+
+@keyframes gestureIndicator {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+        opacity: 1;
+        border-color: rgba(255, 255, 255, 1);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2) rotate(180deg);
+        opacity: 0.7;
+        border-color: rgba(255, 255, 255, 0.7);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.5) rotate(360deg);
+        opacity: 0;
+        border-color: rgba(255, 255, 255, 0);
+    }
+}
+
+@keyframes powerPulse {
+    0% {
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.8), 0 0 30px rgba(76, 175, 80, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+}
+
+@keyframes aimAssist {
+    0% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+}
+
+/* Enhanced touch feedback */
+.enhanced-touch-ripple {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1000;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+}
+
+.precision-mode-indicator {
+    border: 4px solid #FFD700;
+    background: rgba(255, 215, 0, 0.2);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+/* Gesture mode indicators */
+.gesture-mode-normal .mobile-controls {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.gesture-mode-precision .mobile-controls {
+    border-color: rgba(255, 215, 0, 0.8);
+    animation: powerPulse 2s infinite;
+}
+
+.gesture-mode-power .mobile-controls {
+    border-color: rgba(255, 69, 0, 0.8);
+    animation: powerPulse 1s infinite;
+}
+
+/* Enhanced control responsiveness */
+.mobile-controls button:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-controls input[type="range"]:active {
+    transform: scale(1.02);
+}
+
+/* Floating controls for better mobile UX */
+.floating-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    padding: 10px;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.floating-controls.visible {
+    transform: translateX(0);
+}
+
+.floating-controls .control-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.floating-controls .control-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Enhanced zoom indicator */
+.zoom-indicator {
+    position: fixed;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.zoom-indicator.visible {
+    opacity: 1;
+}
+
+/* Aim assist visual indicators */
+.aim-assist-indicator {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 0, 0.8);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: aimAssist 2s infinite;
+}
+
+/* Bank shot suggestion indicators */
+.bank-suggestion {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: rgba(0, 255, 0, 0.6);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: aimAssist 3s infinite;
+    border: 1px solid rgba(0, 255, 0, 0.8);
+}
+
+/* Gesture conflict resolution */
+.gesture-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.gesture-overlay.active {
+    opacity: 1;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     body {
@@ -477,5 +689,478 @@ button:active::after {
     
     .mobile-controls #powerSlider {
         width: 200px;
+    }
+}
+
+/* Enhanced mobile responsiveness for different screen sizes */
+@media (max-width: 480px) and (orientation: portrait) {
+    .floating-controls {
+        top: auto;
+        bottom: 100px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        padding: 15px;
+    }
+    
+    .zoom-indicator {
+        left: 10px;
+        top: 20px;
+        transform: none;
+    }
+    
+    .mobile-controls {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 40px);
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+    .floating-controls {
+        top: 10px;
+        right: 10px;
+        padding: 8px;
+    }
+    
+    .floating-controls .control-item {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .mobile-controls {
+        bottom: 10px;
+        padding: 10px 15px;
+    }
+    
+    .mobile-controls .control-row {
+        margin-bottom: 8px;
+    }
+}
+
+/* Touch target enhancement for accessibility */
+.touch-target-large {
+    min-width: 48px;
+    min-height: 48px;
+}
+
+.touch-target-xl {
+    min-width: 60px;
+    min-height: 60px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .mobile-controls {
+        background: rgba(0, 0, 0, 0.95);
+        border: 2px solid white;
+    }
+    
+    .floating-controls {
+        background: rgba(0, 0, 0, 0.95);
+        border: 1px solid white;
+    }
+    
+    button {
+        border: 2px solid white;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .enhanced-touch-ripple,
+    .precision-mode-indicator,
+    .aim-assist-indicator,
+    .bank-suggestion {
+        animation: none;
+    }
+    
+    .mobile-controls,
+    .floating-controls,
+    .zoom-indicator {
+        transition: none;
+    }
+}
+
+/* Battery saver mode (when supported) */
+@media (prefers-reduced-motion: reduce) {
+    .enhanced-touch-ripple {
+        display: none;
+    }
+    
+    #gameCanvas {
+        image-rendering: optimizeSpeed;
+    }
+}
+
+/* Tutorial System Styles */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+.tutorial-content {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 90%;
+    width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: white;
+}
+
+.tutorial-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.tutorial-step p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    opacity: 0.9;
+}
+
+.tutorial-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.tutorial-actions button {
+    min-width: 100px;
+    padding: 12px 20px;
+    font-size: 1rem;
+}
+
+/* Tutorial step animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tutorial-step {
+    animation: slideInUp 0.4s ease;
+}
+
+/* Tutorial gesture demonstrations */
+.tutorial-gesture-demo {
+    position: relative;
+    width: 200px;
+    height: 120px;
+    margin: 20px auto;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.tutorial-gesture-demo::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: gestureDemo 2s infinite;
+}
+
+@keyframes gestureDemo {
+    0% {
+        transform: translate(-50px, 0) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(0, 0) scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(50px, 0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Mobile tutorial adjustments */
+@media (max-width: 480px) {
+    .tutorial-content {
+        width: 95%;
+        padding: 25px 20px;
+    }
+    
+    .tutorial-content h3 {
+        font-size: 1.3rem;
+    }
+    
+    .tutorial-step p {
+        font-size: 1rem;
+    }
+    
+    .tutorial-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .tutorial-actions button {
+        width: 100%;
+    }
+}
+
+/* Accessibility Styles */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Screen reader announcements */
+#game-live-region {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* Voice control active state */
+.voice-control-active {
+    border: 2px solid #ff6b6b !important;
+    animation: voicePulse 1s infinite;
+}
+
+@keyframes voicePulse {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.8), 0 0 30px rgba(255, 107, 107, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+    }
+}
+
+/* Focus indicators for keyboard navigation */
+button:focus,
+input:focus {
+    outline: 3px solid #4CAF50;
+    outline-offset: 2px;
+}
+
+/* Enhanced focus for touch targets */
+.touch-target-large:focus,
+.touch-target-xl:focus {
+    outline: 4px solid #4CAF50;
+    outline-offset: 3px;
+}
+
+/* Low power mode optimizations */
+.low-power-mode .enhanced-touch-ripple,
+.low-power-mode .precision-mode-indicator,
+.low-power-mode .aim-assist-indicator,
+.low-power-mode .bank-suggestion {
+    display: none;
+}
+
+.low-power-mode #gameCanvas {
+    image-rendering: optimizeSpeed;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+}
+
+.low-power-mode .mobile-controls,
+.low-power-mode .floating-controls {
+    backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+/* Battery saver indicator */
+.battery-saver-indicator {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 165, 0, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    z-index: 1001;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Performance indicator */
+.performance-indicator {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    z-index: 1000;
+    display: none;
+}
+
+.show-performance .performance-indicator {
+    display: block;
+}
+
+/* Gesture conflict resolution styles */
+.gesture-conflict {
+    border: 2px solid rgba(255, 255, 0, 0.8) !important;
+    animation: conflictPulse 0.5s infinite;
+}
+
+@keyframes conflictPulse {
+    0% {
+        border-color: rgba(255, 255, 0, 0.8);
+    }
+    50% {
+        border-color: rgba(255, 255, 0, 0.4);
+    }
+    100% {
+        border-color: rgba(255, 255, 0, 0.8);
+    }
+}
+
+/* Accessibility announcements styling */
+.accessibility-announcement {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    z-index: 10001;
+    text-align: center;
+    max-width: 80%;
+    animation: announcementFade 3s ease forwards;
+}
+
+@keyframes announcementFade {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    10% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    90% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+}
+
+/* Color blindness support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #0a1929 0%, #1a237e 100%);
+    }
+    
+    .mobile-controls,
+    .floating-controls {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Motion sensitivity support */
+@media (prefers-reduced-motion: reduce) {
+    .voicePulse,
+    .powerPulse,
+    .aimAssist,
+    .gestureIndicator,
+    .precisionPulse,
+    .enhancedRipple,
+    .conflictPulse,
+    .announcementFade {
+        animation: none;
+    }
+    
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+    .mobile-controls,
+    .floating-controls {
+        background: black;
+        border: 3px solid white;
+        color: white;
+    }
+    
+    button {
+        background: white;
+        color: black;
+        border: 2px solid black;
+    }
+    
+    .btn-primary {
+        background: lime;
+        color: black;
+    }
+    
+    .btn-secondary {
+        background: yellow;
+        color: black;
+    }
+    
+    input[type="range"] {
+        background: white;
     }
 }
