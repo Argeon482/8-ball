@@ -1781,6 +1781,31 @@ function update(deltaTime) {
         hapticManager.wallBounce(eightBall.velocity.magnitude());
     }
     
+    // Check pocket collisions
+    const cueBallPocket = checkPocketCollision(cueBall, POCKETS, POCKET_RADIUS);
+    const eightBallPocket = checkPocketCollision(eightBall, POCKETS, POCKET_RADIUS);
+    
+    if (cueBallPocket) {
+        // Cue ball in pocket - reset position
+        cueBall.position = new Vector2(200, 200);
+        cueBall.velocity = new Vector2(0, 0);
+        cueBall.isMoving = false;
+        if (gameState.isMobile) {
+            hapticManager.vibrate([100, 50, 100]); // Scratch feedback
+        }
+    }
+    
+    if (eightBallPocket) {
+        // 8-ball in pocket - score and reset
+        gameState.score += 500 + (gameState.currentBankCount * 100);
+        eightBall.position = new Vector2(600, 200);
+        eightBall.velocity = new Vector2(0, 0);
+        eightBall.isMoving = false;
+        if (gameState.isMobile) {
+            hapticManager.successfulShot();
+        }
+    }
+    
     // Check collision between balls
     if (checkBallCollision(cueBall, eightBall)) {
         // Haptic feedback for ball collision
@@ -1888,6 +1913,17 @@ function render() {
     ctx.restore();
 }
 
+// Define pocket positions (inset from corners for realistic placement)
+const POCKETS = [
+    { x: 25, y: 25 },     // Top-left
+    { x: 775, y: 25 },    // Top-right  
+    { x: 25, y: 375 },    // Bottom-left
+    { x: 775, y: 375 },   // Bottom-right
+    { x: 400, y: 15 },    // Top-middle
+    { x: 400, y: 385 }    // Bottom-middle
+];
+const POCKET_RADIUS = 20;
+
 // Draw table markings
 function drawTableMarkings() {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
@@ -1899,29 +1935,17 @@ function drawTableMarkings() {
     ctx.lineTo(400, 400);
     ctx.stroke();
     
-    // Corner pockets (visual only)
-    const pocketRadius = 20;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    // Draw pockets
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.strokeStyle = 'rgba(139, 69, 19, 0.8)'; // Brown rim
+    ctx.lineWidth = 3;
     
-    // Top-left
-    ctx.beginPath();
-    ctx.arc(0, 0, pocketRadius, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Top-right
-    ctx.beginPath();
-    ctx.arc(800, 0, pocketRadius, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Bottom-left
-    ctx.beginPath();
-    ctx.arc(0, 400, pocketRadius, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Bottom-right
-    ctx.beginPath();
-    ctx.arc(800, 400, pocketRadius, 0, Math.PI * 2);
-    ctx.fill();
+    for (const pocket of POCKETS) {
+        ctx.beginPath();
+        ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+    }
 }
 
 // Draw aiming line

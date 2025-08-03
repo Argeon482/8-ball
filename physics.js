@@ -55,35 +55,62 @@ class Ball {
         // Update position
         this.position = this.position.add(this.velocity.multiply(deltaTime));
 
-        // Check wall collisions
+        // Check wall collisions (with pocket openings consideration)
         let wallHit = false;
+        const pocketBuffer = 35; // Allow balls to get close to pockets
         
-        // Left wall
+        // Left wall (avoid pocket areas at top and bottom)
         if (this.position.x - this.radius <= 0) {
-            this.position.x = this.radius;
-            this.velocity.x = -this.velocity.x * WALL_DAMPENING;
-            wallHit = true;
+            // Check if ball is near a pocket opening
+            const nearTopPocket = this.position.y <= pocketBuffer;
+            const nearBottomPocket = this.position.y >= tableHeight - pocketBuffer;
+            
+            if (!nearTopPocket && !nearBottomPocket) {
+                this.position.x = this.radius;
+                this.velocity.x = -this.velocity.x * WALL_DAMPENING;
+                wallHit = true;
+            }
         }
         
-        // Right wall
+        // Right wall (avoid pocket areas at top and bottom)
         if (this.position.x + this.radius >= tableWidth) {
-            this.position.x = tableWidth - this.radius;
-            this.velocity.x = -this.velocity.x * WALL_DAMPENING;
-            wallHit = true;
+            // Check if ball is near a pocket opening
+            const nearTopPocket = this.position.y <= pocketBuffer;
+            const nearBottomPocket = this.position.y >= tableHeight - pocketBuffer;
+            
+            if (!nearTopPocket && !nearBottomPocket) {
+                this.position.x = tableWidth - this.radius;
+                this.velocity.x = -this.velocity.x * WALL_DAMPENING;
+                wallHit = true;
+            }
         }
         
-        // Top wall
+        // Top wall (avoid pocket areas at corners and middle)
         if (this.position.y - this.radius <= 0) {
-            this.position.y = this.radius;
-            this.velocity.y = -this.velocity.y * WALL_DAMPENING;
-            wallHit = true;
+            // Check if ball is near a pocket opening
+            const nearLeftPocket = this.position.x <= pocketBuffer;
+            const nearRightPocket = this.position.x >= tableWidth - pocketBuffer;
+            const nearMiddlePocket = Math.abs(this.position.x - tableWidth/2) <= pocketBuffer;
+            
+            if (!nearLeftPocket && !nearRightPocket && !nearMiddlePocket) {
+                this.position.y = this.radius;
+                this.velocity.y = -this.velocity.y * WALL_DAMPENING;
+                wallHit = true;
+            }
         }
         
-        // Bottom wall
+        // Bottom wall (avoid pocket areas at corners and middle)
         if (this.position.y + this.radius >= tableHeight) {
-            this.position.y = tableHeight - this.radius;
-            this.velocity.y = -this.velocity.y * WALL_DAMPENING;
-            wallHit = true;
+            // Check if ball is near a pocket opening
+            const nearLeftPocket = this.position.x <= pocketBuffer;
+            const nearRightPocket = this.position.x >= tableWidth - pocketBuffer;
+            const nearMiddlePocket = Math.abs(this.position.x - tableWidth/2) <= pocketBuffer;
+            
+            if (!nearLeftPocket && !nearRightPocket && !nearMiddlePocket) {
+                this.position.y = tableHeight - this.radius;
+                this.velocity.y = -this.velocity.y * WALL_DAMPENING;
+                wallHit = true;
+            }
         }
 
         // Apply friction
@@ -171,6 +198,17 @@ function checkBallCollision(ball1, ball2) {
     return distance < ball1.radius + ball2.radius;
 }
 
+// Check if ball is in a pocket
+function checkPocketCollision(ball, pockets, pocketRadius) {
+    for (const pocket of pockets) {
+        const distance = ball.position.subtract(new Vector2(pocket.x, pocket.y)).magnitude();
+        if (distance < pocketRadius - ball.radius * 0.5) {
+            return pocket;
+        }
+    }
+    return null;
+}
+
 // Collision resolution
 function resolveBallCollision(ball1, ball2) {
     // Calculate collision normal
@@ -188,8 +226,8 @@ function resolveBallCollision(ball1, ball2) {
     // Calculate restitution (bounciness)
     const restitution = 0.95;
     
-    // Calculate impulse scalar
-    const impulse = 2 * velocityAlongNormal / 2; // Assuming equal mass
+    // Calculate impulse scalar (fixed calculation)
+    const impulse = 2 * velocityAlongNormal; // Assuming equal mass
     
     // Apply impulse to balls
     const impulseVector = normal.multiply(impulse * restitution);
