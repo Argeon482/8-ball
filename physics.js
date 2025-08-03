@@ -1,7 +1,7 @@
 // Physics constants
 const FRICTION = 0.985; // Rolling friction
 const WALL_DAMPENING = 0.85; // Energy lost on wall collision
-const BALL_RADIUS = 10;
+const BALL_RADIUS = 15; // Increased from 10 to 15 for better visibility
 const MIN_VELOCITY = 0.1; // Minimum velocity before ball stops
 
 // Vector math utilities
@@ -117,6 +117,16 @@ class Ball {
         ctx.fill();
         ctx.restore();
 
+        // Draw ball with stronger outline for visibility
+        ctx.save();
+        
+        // Draw outer ring for better visibility
+        ctx.strokeStyle = this.color === 'white' ? '#000000' : '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, this.radius + 1, 0, Math.PI * 2);
+        ctx.stroke();
+        
         // Draw ball
         ctx.fillStyle = this.color;
         ctx.beginPath();
@@ -124,19 +134,19 @@ class Ball {
         ctx.fill();
 
         // Draw ball highlight
-        ctx.save();
-        ctx.globalAlpha = 0.3;
+        ctx.globalAlpha = 0.4;
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        ctx.arc(this.position.x - this.radius/3, this.position.y - this.radius/3, this.radius/3, 0, Math.PI * 2);
+        ctx.arc(this.position.x - this.radius/3, this.position.y - this.radius/3, this.radius/2.5, 0, Math.PI * 2);
         ctx.fill();
+        
         ctx.restore();
 
         // Draw number on ball if it's the 8-ball
         if (this.isEightBall) {
             ctx.save();
             ctx.fillStyle = 'white';
-            ctx.font = 'bold 12px Arial';
+            ctx.font = 'bold 14px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('8', this.position.x, this.position.y);
@@ -144,8 +154,8 @@ class Ball {
         }
 
         // Draw ball border
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();

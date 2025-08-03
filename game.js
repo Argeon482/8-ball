@@ -1,6 +1,7 @@
 // Game state
 let canvas, ctx;
 let cueBall, eightBall;
+let canvasTransform = { scaleX: 1, scaleY: 1 }; // Store transform values
 let gameState = {
     isAiming: false,
     aimStart: null,
@@ -36,6 +37,12 @@ function init() {
     cueBall = new Ball(200, 200, 'white');
     eightBall = new Ball(600, 200, 'black', true);
     
+    // Debug log
+    console.log('Balls created:', {
+        cueBall: { x: cueBall.position.x, y: cueBall.position.y, radius: cueBall.radius, color: cueBall.color },
+        eightBall: { x: eightBall.position.x, y: eightBall.position.y, radius: eightBall.radius, color: eightBall.color }
+    });
+    
     // Optimize canvas for mobile (after balls are created)
     if (gameState.isMobile) {
         optimizeCanvasForMobile();
@@ -66,10 +73,9 @@ function optimizeCanvasForMobile() {
         canvas.width = 800;
         canvas.height = 400;
         
-        // Scale the drawing context to fit the display size
-        const scaleX = newWidth / 800;
-        const scaleY = newHeight / 400;
-        ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+        // Calculate and store the scale values
+        canvasTransform.scaleX = newWidth / 800;
+        canvasTransform.scaleY = newHeight / 400;
         
         // Update ball positions proportionally if balls exist
         if (cueBall && eightBall) {
@@ -306,6 +312,12 @@ function update(deltaTime) {
 
 // Render game
 function render() {
+    // Save the current transform state
+    ctx.save();
+    
+    // Apply the stored transform
+    ctx.setTransform(canvasTransform.scaleX, 0, 0, canvasTransform.scaleY, 0, 0);
+    
     // Clear canvas using consistent dimensions
     ctx.fillStyle = '#155115';
     ctx.fillRect(0, 0, 800, 400);
@@ -337,6 +349,9 @@ function render() {
     if (gameState.isMobile && gameState.isAiming && !gameState.ballsMoving) {
         drawMobileAimingFeedback();
     }
+    
+    // Restore the transform state
+    ctx.restore();
 }
 
 // Draw table markings
