@@ -79,6 +79,50 @@
         </div>
     </div>
 
+    <!-- Enhanced Mobile UI Elements -->
+    <div class="floating-controls" id="floatingControls">
+        <div class="control-item">
+            <label for="hapticToggle">Haptic:</label>
+            <input type="checkbox" id="hapticToggle" checked>
+        </div>
+        <div class="control-item">
+            <label for="aimAssistToggle">Aim Assist:</label>
+            <input type="checkbox" id="aimAssistToggle" checked>
+        </div>
+        <div class="control-item">
+            <label>Mode:</label>
+            <span id="gestureModeDisplay">Normal</span>
+        </div>
+        <div class="control-item">
+            <button id="precisionModeBtn" class="btn-secondary touch-target-large" style="font-size: 0.8rem; padding: 8px 12px;">Precision</button>
+        </div>
+        <div class="control-item">
+            <button id="voiceControlBtn" class="btn-secondary touch-target-large" style="font-size: 0.8rem; padding: 8px 12px;">🎤 Voice</button>
+        </div>
+    </div>
+
+    <!-- Zoom Level Indicator -->
+    <div class="zoom-indicator" id="zoomIndicator">
+        Zoom: <span id="zoomLevel">100%</span>
+    </div>
+
+    <!-- Gesture Overlay for Conflict Resolution -->
+    <div class="gesture-overlay" id="gestureOverlay"></div>
+
+    <!-- Tutorial Overlay -->
+    <div class="tutorial-overlay" id="tutorialOverlay" style="display: none;">
+        <div class="tutorial-content">
+            <h3>Mobile Controls Tutorial</h3>
+            <div class="tutorial-step" id="tutorialStep">
+                <p>Welcome! Let's learn the advanced mobile controls.</p>
+                <div class="tutorial-actions">
+                    <button id="tutorialNext" class="btn-primary">Next</button>
+                    <button id="tutorialSkip" class="btn-secondary">Skip</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="physics.js"></script>
     <script src="game.js"></script>
 </body>
