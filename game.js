@@ -32,14 +32,14 @@ function init() {
     // Detect mobile device
     gameState.isMobile = detectMobile();
     
-    // Optimize canvas for mobile
+    // Create balls first with default positions
+    cueBall = new Ball(200, 200, 'white');
+    eightBall = new Ball(600, 200, 'black', true);
+    
+    // Optimize canvas for mobile (after balls are created)
     if (gameState.isMobile) {
         optimizeCanvasForMobile();
     }
-    
-    // Create balls
-    cueBall = new Ball(200, canvas.height / 2, 'white');
-    eightBall = new Ball(600, canvas.height / 2, 'black', true);
     
     // Set up event listeners
     setupEventListeners();
@@ -62,22 +62,22 @@ function optimizeCanvasForMobile() {
         canvas.style.width = newWidth + 'px';
         canvas.style.height = newHeight + 'px';
         
-        // Set actual canvas size for high DPI displays
-        const scale = window.devicePixelRatio || 1;
-        canvas.width = newWidth * scale;
-        canvas.height = newHeight * scale;
+        // Keep canvas internal size consistent for easier coordinate management
+        canvas.width = 800;
+        canvas.height = 400;
         
-        // Scale the drawing context so everything draws at the correct size
-        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        // Scale the drawing context to fit the display size
+        const scaleX = newWidth / 800;
+        const scaleY = newHeight / 400;
+        ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
         
         // Update ball positions proportionally if balls exist
         if (cueBall && eightBall) {
-            const scaleX = newWidth / 800;
-            const scaleY = newHeight / 400;
-            cueBall.position.x = 200 * scaleX;
-            cueBall.position.y = (400 / 2) * scaleY;
-            eightBall.position.x = 600 * scaleX;
-            eightBall.position.y = (400 / 2) * scaleY;
+            // Reset to original positions since we're now scaling the context instead
+            cueBall.position.x = 200;
+            cueBall.position.y = 200;
+            eightBall.position.x = 600;
+            eightBall.position.y = 200;
         }
     }
 }
@@ -155,8 +155,9 @@ function handleMouseDown(e) {
     if (gameState.ballsMoving) return;
     
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    // Use consistent coordinate mapping (canvas internal size is always 800x400)
+    const scaleX = 800 / rect.width;
+    const scaleY = 400 / rect.height;
     
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
@@ -184,8 +185,9 @@ function handleMouseMove(e) {
     if (!gameState.isAiming || gameState.ballsMoving) return;
     
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    // Use consistent coordinate mapping (canvas internal size is always 800x400)
+    const scaleX = 800 / rect.width;
+    const scaleY = 400 / rect.height;
     
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
@@ -268,14 +270,14 @@ function shoot() {
 
 // Update game state
 function update(deltaTime) {
-    // Update cue ball
-    const cueBallResult = cueBall.update(deltaTime, canvas.width, canvas.height);
+    // Update cue ball - use consistent table dimensions
+    const cueBallResult = cueBall.update(deltaTime, 800, 400);
     if (cueBallResult.wallHit) {
         gameState.currentBankCount++;
     }
     
     // Update eight ball
-    eightBall.update(deltaTime, canvas.width, canvas.height);
+    eightBall.update(deltaTime, 800, 400);
     
     // Check collision between balls
     if (checkBallCollision(cueBall, eightBall)) {
@@ -304,9 +306,9 @@ function update(deltaTime) {
 
 // Render game
 function render() {
-    // Clear canvas
+    // Clear canvas using consistent dimensions
     ctx.fillStyle = '#155115';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, 800, 400);
     
     // Draw table markings
     drawTableMarkings();
@@ -344,8 +346,8 @@ function drawTableMarkings() {
     
     // Center line
     ctx.beginPath();
-    ctx.moveTo(canvas.width / 2, 0);
-    ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.moveTo(400, 0);
+    ctx.lineTo(400, 400);
     ctx.stroke();
     
     // Corner pockets (visual only)
@@ -359,17 +361,17 @@ function drawTableMarkings() {
     
     // Top-right
     ctx.beginPath();
-    ctx.arc(canvas.width, 0, pocketRadius, 0, Math.PI * 2);
+    ctx.arc(800, 0, pocketRadius, 0, Math.PI * 2);
     ctx.fill();
     
     // Bottom-left
     ctx.beginPath();
-    ctx.arc(0, canvas.height, pocketRadius, 0, Math.PI * 2);
+    ctx.arc(0, 400, pocketRadius, 0, Math.PI * 2);
     ctx.fill();
     
     // Bottom-right
     ctx.beginPath();
-    ctx.arc(canvas.width, canvas.height, pocketRadius, 0, Math.PI * 2);
+    ctx.arc(800, 400, pocketRadius, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -395,8 +397,8 @@ function drawShotPreview() {
         cueBall, 
         gameState.aimAngle, 
         gameState.shotPower / 100,
-        canvas.width,
-        canvas.height
+        800,
+        400
     );
     
     ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
@@ -557,12 +559,12 @@ document.head.appendChild(style);
 
 // Reset game
 function resetGame() {
-    // Reset ball positions
-    cueBall.position = new Vector2(200, canvas.height / 2);
+    // Reset ball positions to consistent coordinates
+    cueBall.position = new Vector2(200, 200);
     cueBall.velocity = new Vector2(0, 0);
     cueBall.isMoving = false;
     
-    eightBall.position = new Vector2(600, canvas.height / 2);
+    eightBall.position = new Vector2(600, 200);
     eightBall.velocity = new Vector2(0, 0);
     eightBall.isMoving = false;
     
