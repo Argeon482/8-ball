@@ -181,6 +181,12 @@ function handleMouseDown(e) {
         gameState.isAiming = true;
         gameState.aimStart = new Vector2(cueBall.position.x, cueBall.position.y);
         
+        // Set initial aim direction even if mouse hasn't moved yet
+        const mousePos = new Vector2(x, y);
+        const aimData = calculateAimLine(gameState.aimStart, mousePos);
+        gameState.aimEnd = aimData.end;
+        gameState.aimAngle = aimData.angle;
+        
         // Add haptic feedback on supported devices
         if ('vibrate' in navigator && gameState.isMobile) {
             navigator.vibrate(50);
@@ -257,7 +263,7 @@ function handleTouchEnd(e) {
     const touchDuration = Date.now() - gameState.touchStartTime;
     
     // Quick tap to shoot (less than 200ms and minimal movement)
-    if (touchDuration < 200 && gameState.isAiming && gameState.aimAngle !== 0) {
+    if (touchDuration < 200 && gameState.isAiming && gameState.aimEnd) {
         shoot();
     }
     
@@ -274,8 +280,19 @@ function handleTouchEnd(e) {
 
 // Shoot the cue ball
 function shoot() {
-    if (gameState.ballsMoving || gameState.aimAngle === 0) return;
+    console.log('Shoot called:', {
+        ballsMoving: gameState.ballsMoving,
+        aimEnd: gameState.aimEnd,
+        aimAngle: gameState.aimAngle,
+        shotPower: gameState.shotPower
+    });
     
+    if (gameState.ballsMoving || !gameState.aimEnd) {
+        console.log('Shot blocked:', gameState.ballsMoving ? 'balls moving' : 'no aim end');
+        return;
+    }
+    
+    console.log('Shooting ball with power:', gameState.shotPower / 100, 'angle:', gameState.aimAngle);
     cueBall.shoot(gameState.shotPower / 100, gameState.aimAngle);
     gameState.ballsMoving = true;
     gameState.shotCount++;
@@ -350,7 +367,7 @@ function render() {
     }
     
     // Draw power indicator on cue ball when aiming
-    if ((gameState.isAiming || gameState.aimAngle !== 0) && !gameState.ballsMoving) {
+    if ((gameState.isAiming || gameState.aimEnd) && !gameState.ballsMoving) {
         drawPowerIndicator();
     }
     

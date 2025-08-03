@@ -100,11 +100,14 @@ class Ball {
 
     shoot(power, angle) {
         const speed = power * 10; // Convert power percentage to speed
+        console.log('Ball.shoot called:', { power, angle, speed });
         this.velocity = new Vector2(
             Math.cos(angle) * speed,
             Math.sin(angle) * speed
         );
+        console.log('New velocity set:', this.velocity);
         this.isMoving = true;
+        console.log('Ball isMoving set to:', this.isMoving);
     }
 
     draw(ctx) {
